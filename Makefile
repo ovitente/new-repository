@@ -74,7 +74,7 @@ install:
 
 # Initialize project with specific profile
 init:
-	@chmod +x scripts/*.sh
+	@chmod +x scripts/*.sh 2>/dev/null || true
 	@if [ -n "$(filter-out init,$(MAKECMDGOALS))" ]; then \
 		profile=$(filter-out init,$(MAKECMDGOALS)); \
 		echo "Initializing project with $$profile profile..."; \

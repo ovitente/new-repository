@@ -510,6 +510,7 @@ EOF
     esac
     
     success "Dependencies installed for $profile profile"
+    return 0
 }
 
 # Function to initialize project
@@ -531,6 +532,7 @@ init_project() {
     create_project_structure "$profile"
     
     success "Project initialized with $profile profile (includes common profile)"
+    return 0
 }
 
 # Function to create project structure
@@ -539,20 +541,32 @@ create_project_structure() {
     
     case "$profile" in
         "python")
-            [[ ! -f "requirements.txt" ]] && echo "# Python dependencies" > requirements.txt
-            [[ ! -f "setup.py" ]] && echo "# Python setup" > setup.py
+            if [[ ! -f "requirements.txt" ]]; then
+                echo "# Python dependencies" > requirements.txt
+            fi
+            if [[ ! -f "setup.py" ]]; then
+                echo "# Python setup" > setup.py
+            fi
             ;;
         "js")
-            [[ ! -f "package.json" ]] && npm init -y
+            if [[ ! -f "package.json" ]]; then
+                npm init -y
+            fi
             ;;
         "go")
-            [[ ! -f "go.mod" ]] && go mod init $(basename $(pwd))
+            if [[ ! -f "go.mod" ]]; then
+                go mod init $(basename $(pwd))
+            fi
             ;;
         "terraform")
-            [[ ! -f "main.tf" ]] && echo "# Terraform configuration" > main.tf
+            if [[ ! -f "main.tf" ]]; then
+                echo "# Terraform configuration" > main.tf
+            fi
             ;;
         "pulumi")
-            [[ ! -f "Pulumi.yaml" ]] && echo "# Pulumi configuration" > Pulumi.yaml
+            if [[ ! -f "Pulumi.yaml" ]]; then
+                echo "# Pulumi configuration" > Pulumi.yaml
+            fi
             ;;
     esac
 }
@@ -566,6 +580,7 @@ case "${1:-}" in
             exit 1
         fi
         init_project "$2"
+        exit 0
         ;;
     "set")
         if [[ -z "${2:-}" ]]; then
