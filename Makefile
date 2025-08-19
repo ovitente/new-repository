@@ -8,7 +8,7 @@ help:
 	@echo "Available commands:"
 	@echo ""
 	@echo "Profile Management:"
-	@echo "  init        - Show usage for profile initialization"
+	@echo "  init        - Initialize with common profile"
 	@echo "  init-common - Initialize with common profile"
 	@echo "  init-js     - Initialize with JavaScript/TypeScript profile"
 	@echo "  init-go     - Initialize with Go profile"
@@ -74,9 +74,18 @@ install:
 
 # Initialize project with specific profile
 init:
-	@echo "Usage: make init [PROFILE]"
-	@echo "Available profiles: common, js, go, python, terraform, pulumi, bash"
-	@echo "Example: make init python"
+	@if [ -n "$(filter-out init,$(MAKECMDGOALS))" ]; then \
+		profile=$(filter-out init,$(MAKECMDGOALS)); \
+		echo "Initializing project with $$profile profile..."; \
+		./scripts/profile-manager.sh init $$profile; \
+	else \
+		echo "Initializing project with common profile..."; \
+		./scripts/profile-manager.sh init common; \
+	fi
+
+# Handle arguments for init command
+%:
+	@:
 
 # Initialize with common profile
 init-common:

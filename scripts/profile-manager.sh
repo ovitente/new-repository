@@ -225,6 +225,7 @@ merge_pre_commit_configs() {
 # Function to install profile
 install_profile() {
     local profile="$1"
+    shift
     local profiles=("$@")
     
     log "Installing profile: $profile"
@@ -232,7 +233,10 @@ install_profile() {
     # Copy profile-specific configuration files
     copy_profile_configs "$profile"
     
-    # Merge pre-commit configurations
+    # Merge pre-commit configurations (always include common + specified profile)
+    if [[ ${#profiles[@]} -eq 0 ]]; then
+        profiles=("common" "$profile")
+    fi
     merge_pre_commit_configs "${profiles[@]}"
     
     # Install pre-commit hooks
@@ -517,13 +521,16 @@ init_project() {
     # Set profile
     set_profile "$profile"
     
-    # Install profile
-    install_profile "$profile"
+    # Always include common profile + the specified profile
+    local profiles=("common" "$profile")
+    
+    # Install profile (this will include common automatically)
+    install_profile "$profile" "${profiles[@]}"
     
     # Create basic project structure
     create_project_structure "$profile"
     
-    success "Project initialized with $profile profile"
+    success "Project initialized with $profile profile (includes common profile)"
 }
 
 # Function to create project structure
