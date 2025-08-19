@@ -1,0 +1,64 @@
+# Universal pre-commit hooks configuration
+# These checks apply to all project types
+
+repos:
+  # Security tools (universal)
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.5.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-json
+      - id: check-added-large-files
+      - id: check-merge-conflict
+      - id: check-case-conflict
+      - id: debug-statements
+      - id: fix-byte-order-marker
+
+  # Secret detection (universal)
+  - repo: https://github.com/trufflesecurity/truffleHog
+    rev: 3.0.0
+    hooks:
+      - id: trufflehog
+        args: [--fail]
+
+  # GitLeaks for additional secret scanning (universal)
+  - repo: https://github.com/zricethezav/gitleaks
+    rev: v8.18.0
+    hooks:
+      - id: gitleaks
+        args: [--verbose]
+
+  # YAML linting (universal)
+  - repo: https://github.com/adrienverge/yamllint
+    rev: v1.33.0
+    hooks:
+      - id: yamllint
+        args: [--strict]
+
+  # JSON linting (universal)
+  - repo: https://github.com/pre-commit/mirrors-jsonlint
+    rev: v1.6.3
+    hooks:
+      - id: jsonlint
+
+  # Markdown linting (universal)
+  - repo: https://github.com/igorshubovych/markdownlint-cli
+    rev: v0.38.0
+    hooks:
+      - id: markdownlint
+        args: [--fix]
+
+  # Commit message formatting (universal)
+  - repo: https://github.com/commitizen-tools/commitizen
+    rev: v3.13.0
+    hooks:
+      - id: commitizen
+        stages: [commit-msg]
+
+  # License header check (universal)
+  - repo: https://github.com/apache/skywalking-eyes
+    rev: main
+    hooks:
+      - id: header 

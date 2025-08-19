@@ -1,0 +1,89 @@
+# EditorConfig is awesome: https://EditorConfig.org
+
+# top-most EditorConfig file
+root = true
+
+# Unix-style newlines with a newline ending every file
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+# Python files
+[*.py]
+indent_style = space
+indent_size = 4
+
+# JavaScript, TypeScript, JSON, YAML, Markdown files
+[*.{js,jsx,ts,tsx,json,yml,yaml,md}]
+indent_style = space
+indent_size = 2
+
+# HTML, CSS, SCSS files
+[*.{html,css,scss}]
+indent_style = space
+indent_size = 2
+
+# Shell scripts
+[*.sh]
+indent_style = space
+indent_size = 2
+
+# Makefiles
+[Makefile]
+indent_style = tab
+
+# Docker files
+[Dockerfile*]
+indent_style = space
+indent_size = 2
+
+# Terraform files
+[*.tf]
+indent_style = space
+indent_size = 2
+
+# Go files
+[*.go]
+indent_style = tab
+
+# Rust files
+[*.rs]
+indent_style = space
+indent_size = 4
+
+# Java files
+[*.java]
+indent_style = space
+indent_size = 4
+
+# XML files
+[*.xml]
+indent_style = space
+indent_size = 2
+
+# Configuration files
+[*.{ini,cfg,conf}]
+indent_style = space
+indent_size = 2
+
+# Documentation files
+[*.{txt,rst}]
+indent_style = space
+indent_size = 2
+
+# Git configuration
+[.gitignore]
+indent_style = space
+indent_size = 2
+
+# Package files
+[package.json]
+indent_style = space
+indent_size = 2
+
+# Requirements files
+[requirements*.txt]
+indent_style = space
+indent_size = 4 

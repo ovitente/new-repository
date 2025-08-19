@@ -1,0 +1,69 @@
+# Go pre-commit hooks configuration
+
+repos:
+  # Go formatting and linting
+  - repo: https://github.com/dnephin/pre-commit-golang
+    rev: v0.5.1
+    hooks:
+      - id: go-fmt
+      - id: go-vet
+      - id: go-imports
+      - id: golangci-lint
+      - id: go-mod-tidy
+
+  # Go security scanning
+  - repo: https://github.com/securecodewarrior/git-secrets
+    rev: v1.3.0
+    hooks:
+      - id: git-secrets
+
+  # Go tests
+  - repo: local
+    hooks:
+      - id: go-test
+        name: Go Tests
+        entry: go test ./...
+        language: system
+        files: \.go$
+        pass_filenames: false
+
+  # Go build check
+  - repo: local
+    hooks:
+      - id: go-build
+        name: Go Build Check
+        entry: go build ./...
+        language: system
+        files: \.go$
+        pass_filenames: false
+
+  # Go module validation
+  - repo: local
+    hooks:
+      - id: go-mod-validate
+        name: Go Module Validation
+        entry: go mod verify
+        language: system
+        files: go\.mod$
+        pass_filenames: false
+
+  # Go security audit
+  - repo: local
+    hooks:
+      - id: go-security-audit
+        name: Go Security Audit
+        entry: gosec ./...
+        language: system
+        files: \.go$
+        pass_filenames: false
+
+  # Go race detection
+  - repo: local
+    hooks:
+      - id: go-race
+        name: Go Race Detection
+        entry: go test -race ./...
+        language: system
+        files: \.go$
+        pass_filenames: false
+        always_run: false 

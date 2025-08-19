@@ -1,0 +1,67 @@
+# Bash pre-commit hooks configuration
+
+repos:
+  # Shell script linting
+  - repo: https://github.com/koalaman/shellcheck-precommit
+    rev: v0.9.0
+    hooks:
+      - id: shellcheck
+        args: [--severity=warning]
+
+  # Bash best practices
+  - repo: local
+    hooks:
+      - id: bash-best-practices
+        name: Bash Best Practices
+        entry: bash -n
+        language: system
+        files: \.(sh|bash)$
+        pass_filenames: false
+
+  # Shell script formatting
+  - repo: local
+    hooks:
+      - id: shfmt
+        name: Shell Format
+        entry: shfmt -i 2 -ci -d
+        language: system
+        files: \.(sh|bash)$
+
+  # Shell script security
+  - repo: local
+    hooks:
+      - id: shell-security
+        name: Shell Security Check
+        entry: shellcheck --severity=error
+        language: system
+        files: \.(sh|bash)$
+
+  # Shell script syntax check
+  - repo: local
+    hooks:
+      - id: shell-syntax
+        name: Shell Syntax Check
+        entry: bash -n
+        language: system
+        files: \.(sh|bash)$
+
+  # Shell script execution test
+  - repo: local
+    hooks:
+      - id: shell-test
+        name: Shell Script Test
+        entry: bash -c "if [ -f 'test.sh' ]; then bash test.sh; fi"
+        language: system
+        files: test\.sh$
+        pass_filenames: false
+        always_run: false
+
+  # Shell script documentation check
+  - repo: local
+    hooks:
+      - id: shell-docs
+        name: Shell Documentation Check
+        entry: grep -q '^#' || echo "No documentation found"
+        language: system
+        files: \.(sh|bash)$
+        pass_filenames: false 

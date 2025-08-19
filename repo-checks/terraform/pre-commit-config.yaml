@@ -1,0 +1,76 @@
+# Terraform pre-commit hooks configuration
+
+repos:
+  # Terraform formatting and validation
+  - repo: https://github.com/antonbabenko/pre-commit-terraform
+    rev: v1.88.0
+    hooks:
+      - id: terraform_fmt
+      - id: terraform_validate
+      - id: terraform_docs
+      - id: terraform_tflint
+      - id: terraform_checkov
+      - id: terraform_tfsec
+
+  # Terragrunt specific checks
+  - repo: local
+    hooks:
+      - id: terragrunt-validate
+        name: Terragrunt Validate
+        entry: terragrunt run-all validate
+        language: system
+        files: terragrunt\.hcl$
+        pass_filenames: false
+
+  # Terraform security scanning
+  - repo: local
+    hooks:
+      - id: terraform-security-scan
+        name: Terraform Security Scan
+        entry: tfsec
+        language: system
+        files: \.tf$
+        pass_filenames: false
+
+  # Terraform cost estimation
+  - repo: local
+    hooks:
+      - id: terraform-cost
+        name: Terraform Cost Estimation
+        entry: infracost breakdown --path .
+        language: system
+        files: \.tf$
+        pass_filenames: false
+        always_run: false
+
+  # Terraform plan validation
+  - repo: local
+    hooks:
+      - id: terraform-plan
+        name: Terraform Plan
+        entry: terraform plan -detailed-exitcode
+        language: system
+        files: \.tf$
+        pass_filenames: false
+        always_run: false
+
+  # Terraform state validation
+  - repo: local
+    hooks:
+      - id: terraform-state
+        name: Terraform State Validation
+        entry: terraform show
+        language: system
+        files: \.tfstate$
+        pass_filenames: false
+        always_run: false
+
+  # Terraform variable validation
+  - repo: local
+    hooks:
+      - id: terraform-variables
+        name: Terraform Variables Validation
+        entry: terraform validate -var-file=*.tfvars
+        language: system
+        files: \.tfvars$
+        pass_filenames: false 

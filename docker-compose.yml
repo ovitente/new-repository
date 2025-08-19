@@ -1,0 +1,167 @@
+version: '3.8'
+
+services:
+  # Main application
+  app:
+    build:
+      context: .
+      target: production
+    ports:
+      - "8000:8000"
+    environment:
+      - NODE_ENV=development
+      - PYTHONPATH=/app
+    volumes:
+      - ./src:/app/src:ro
+      - ./tests:/app/tests:ro
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    restart: unless-stopped
+
+  # Development environment
+  dev:
+    build:
+      context: .
+      target: python-builder
+    ports:
+      - "8001:8000"
+    environment:
+      - NODE_ENV=development
+      - PYTHONPATH=/app
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - /app/__pycache__
+    command: ["python", "-m", "http.server", "8000"]
+    profiles:
+      - development
+
+  # Security scanning service
+  security-scanner:
+    image: aquasec/trivy:latest
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./security-reports:/reports
+    command: >
+      image --format json --output /reports/trivy-report.json
+      repository-template:latest
+    profiles:
+      - security
+
+  # Dependency vulnerability scanner
+  dependency-scanner:
+    image: snyk/snyk:docker
+    volumes:
+      - .:/app
+      - ./security-reports:/reports
+    working_dir: /app
+    environment:
+      - SNYK_TOKEN=${SNYK_TOKEN}
+    command: >
+      test --severity-threshold=high
+      --json-file-output=/reports/snyk-report.json
+    profiles:
+      - security
+
+  # Code quality service
+  code-quality:
+    image: python:3.11-slim
+    volumes:
+      - .:/app
+      - ./quality-reports:/reports
+    working_dir: /app
+    command: >
+      bash -c "
+        pip install -r requirements.txt &&
+        black --check --diff . > /reports/black-report.txt 2>&1 &&
+        flake8 . > /reports/flake8-report.txt 2>&1 &&
+        bandit -r . -f json -o /reports/bandit-report.json &&
+        echo 'Code quality checks completed'
+      "
+    profiles:
+      - quality
+
+  # Testing service
+  test-runner:
+    image: node:18-alpine
+    volumes:
+      - .:/app
+      - ./test-reports:/reports
+    working_dir: /app
+    command: >
+      sh -c "
+        npm ci &&
+        npm test -- --coverage --json --outputFile=/reports/jest-report.json &&
+        echo 'Tests completed'
+      "
+    profiles:
+      - testing
+
+  # Database for testing (if needed)
+  test-db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: test_db
+      POSTGRES_USER: test_user
+      POSTGRES_PASSWORD: test_password
+    ports:
+      - "5433:5432"
+    volumes:
+      - test-db-data:/var/lib/postgresql/data
+    profiles:
+      - testing
+
+  # Redis for caching (if needed)
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    profiles:
+      - development
+
+  # Monitoring stack
+  prometheus:
+    image: prom/prometheus:latest
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus-data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=200h'
+      - '--web.enable-lifecycle'
+    profiles:
+      - monitoring
+
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./monitoring/grafana/dashboards:/etc/grafana/provisioning/dashboards
+      - ./monitoring/grafana/datasources:/etc/grafana/provisioning/datasources
+    profiles:
+      - monitoring
+
+volumes:
+  test-db-data:
+  redis-data:
+  prometheus-data:
+  grafana-data:
+
+networks:
+  default:
+    driver: bridge 

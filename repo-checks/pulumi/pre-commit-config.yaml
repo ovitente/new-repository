@@ -1,0 +1,104 @@
+# Pulumi pre-commit hooks configuration
+
+repos:
+  # Pulumi formatting and validation
+  - repo: local
+    hooks:
+      - id: pulumi-format
+        name: Pulumi Format
+        entry: pulumi fmt
+        language: system
+        files: \.(ts|js|py|go)$
+        pass_filenames: false
+
+  # Pulumi validation
+  - repo: local
+    hooks:
+      - id: pulumi-validate
+        name: Pulumi Validate
+        entry: pulumi validate
+        language: system
+        files: Pulumi\.(yaml|yml)$
+        pass_filenames: false
+
+  # Pulumi preview
+  - repo: local
+    hooks:
+      - id: pulumi-preview
+        name: Pulumi Preview
+        entry: pulumi preview --diff
+        language: system
+        files: \.(ts|js|py|go)$
+        pass_filenames: false
+        always_run: false
+
+  # Pulumi security scanning
+  - repo: local
+    hooks:
+      - id: pulumi-security
+        name: Pulumi Security Scan
+        entry: pulumi policy run
+        language: system
+        files: \.(ts|js|py|go)$
+        pass_filenames: false
+
+  # Pulumi cost estimation
+  - repo: local
+    hooks:
+      - id: pulumi-cost
+        name: Pulumi Cost Estimation
+        entry: pulumi cost estimate
+        language: system
+        files: \.(ts|js|py|go)$
+        pass_filenames: false
+        always_run: false
+
+  # Pulumi stack validation
+  - repo: local
+    hooks:
+      - id: pulumi-stack
+        name: Pulumi Stack Validation
+        entry: pulumi stack select --create
+        language: system
+        files: Pulumi\.(yaml|yml)$
+        pass_filenames: false
+
+  # Pulumi dependency check
+  - repo: local
+    hooks:
+      - id: pulumi-deps
+        name: Pulumi Dependencies Check
+        entry: pulumi plugin ls
+        language: system
+        files: Pulumi\.(yaml|yml)$
+        pass_filenames: false
+
+  # TypeScript/JavaScript checks (for Pulumi TypeScript projects)
+  - repo: https://github.com/pre-commit/mirrors-eslint
+    rev: v8.56.0
+    hooks:
+      - id: eslint
+        files: \.(ts|js)$
+        types: [file]
+        additional_dependencies:
+          - eslint@8.56.0
+          - '@typescript-eslint/eslint-plugin@6.19.0'
+          - '@typescript-eslint/parser@6.19.0'
+
+  # Python checks (for Pulumi Python projects)
+  - repo: https://github.com/psf/black
+    rev: 23.12.1
+    hooks:
+      - id: black
+        language_version: python3
+        args: [--line-length=88]
+        files: \.py$
+
+  # Go checks (for Pulumi Go projects)
+  - repo: https://github.com/dnephin/pre-commit-golang
+    rev: v0.5.1
+    hooks:
+      - id: go-fmt
+        files: \.go$
+      - id: go-vet
+        files: \.go$ 
