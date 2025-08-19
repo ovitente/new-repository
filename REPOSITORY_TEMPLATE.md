@@ -34,7 +34,10 @@ A comprehensive template for new Git repositories with security best practices, 
    make detect
    
    # Initialize with specific profile
-   make init
+   make init go      # For Go projects
+   make init python  # For Python projects
+   make init js      # For JavaScript/TypeScript projects
+   make init         # For common profile only
    ```
 
 3. **Install dependencies for your profile**:
@@ -55,42 +58,42 @@ A comprehensive template for new Git repositories with security best practices, 
 
 ### **Python Project**
 ```bash
-make init-python   # Initialize with Python profile
+make init python   # Initialize with Python profile
 make install       # Creates venv and installs dependencies
 make check         # Run all checks
 ```
 
 ### **JavaScript/TypeScript Project**
 ```bash
-make init-js       # Initialize with JS profile
+make init js       # Initialize with JS profile
 make install       # Installs npm dependencies
 make check         # Run all checks
 ```
 
 ### **Go Project**
 ```bash
-make init-go       # Initialize with Go profile
+make init go       # Initialize with Go profile
 make install       # Installs Go tools
 make check         # Run all checks
 ```
 
 ### **Terraform Project**
 ```bash
-make init-terraform # Initialize with Terraform profile
+make init terraform # Initialize with Terraform profile
 make install       # Installs Terraform tools
 make check         # Run all checks
 ```
 
 ### **Pulumi Project**
 ```bash
-make init-pulumi   # Initialize with Pulumi profile
+make init pulumi   # Initialize with Pulumi profile
 make install       # Installs Pulumi tools
 make check         # Run all checks
 ```
 
 ### **Bash Project**
 ```bash
-make init-bash     # Initialize with Bash profile
+make init bash     # Initialize with Bash profile
 make install       # Installs shell tools
 make check         # Run all checks
 ```

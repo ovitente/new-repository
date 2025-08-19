@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Comprehensive Security Scanning Script
 # This script runs multiple security tools to scan the codebase

@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Development Tools Installation Script
 # This script installs all necessary development and security tools
@@ -171,7 +171,7 @@ log "Installing Go development tools..."
 GO_PACKAGES=(
     "github.com/zricethezav/gitleaks/v8/cmd/gitleaks@latest"
     "github.com/golangci/golangci-lint/cmd/golangci-lint@latest"
-    "github.com/securecodewarrior/git-secrets@latest"
+            "github.com/zricethezav/gitleaks/v8@latest"
 )
 
 for package in "${GO_PACKAGES[@]}"; do

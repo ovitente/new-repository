@@ -12,10 +12,10 @@ repos:
       - id: go-mod-tidy
 
   # Go security scanning
-  - repo: https://github.com/securecodewarrior/git-secrets
-    rev: v1.3.0
+  - repo: https://github.com/zricethezav/gitleaks
+    rev: v8.18.0
     hooks:
-      - id: git-secrets
+      - id: gitleaks
 
   # Go tests
   - repo: local

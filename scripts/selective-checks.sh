@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Selective Checks Script
 # This script runs checks only on changed files based on the project profile

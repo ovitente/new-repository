@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Profile Manager Script
 # This script manages project profiles and installs appropriate checks
@@ -283,7 +283,7 @@ install_profile_dependencies() {
             
             # Create activation script for convenience
             cat > activate-venv.sh << 'EOF'
-#!/bin/bash
+#!/usr/bin/env bash
 echo "Activating Python virtual environment..."
 source venv/bin/activate
 echo "Virtual environment activated. Run 'deactivate' to exit."
@@ -331,7 +331,7 @@ EOF
             
             # Install Go tools locally
             go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
-            go install github.com/securecodewarrior/git-secrets@latest
+            go install github.com/zricethezav/gitleaks/v8@latest
             go install github.com/fzipp/gocyclo/cmd/gocyclo@latest
             go install github.com/gordonklaus/ineffassign@latest
             
