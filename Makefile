@@ -57,6 +57,11 @@ help:
 	@echo "  docker-run   - Run Docker container"
 	@echo "  docs        - Generate documentation"
 	@echo ""
+	@echo "Knowledge Graph (lat.md):"
+	@echo "  lat-install  - Install lat.md CLI"
+	@echo "  lat-check    - Validate lat.md knowledge graph"
+	@echo "  lat-policy   - Check lat.md sync policy"
+	@echo ""
 	@echo "Environment Management:"
 	@echo "  venv-create  - Create Python virtual environment"
 	@echo "  venv-activate - Activate virtual environment"
@@ -65,6 +70,20 @@ help:
 	@echo "  clean-all    - Clean all local tools and environments"
 	@echo ""
 	@echo "Available profiles: common, js, go, python, terraform, pulumi, bash"
+
+# lat.md knowledge graph
+lat-install:
+	@echo "Installing lat.md..."
+	@command -v lat >/dev/null 2>&1 && echo "lat already installed" || npm install -g --prefix $$HOME/.npm-global lat.md
+	@echo "Configuring git hooks..."
+	@git config core.hooksPath .githooks
+	@echo "Done. lat.md ready."
+
+lat-check:
+	@export LAT_LLM_KEY=$${LAT_LLM_KEY:-unused} && lat check
+
+lat-policy:
+	@bash scripts/check-lat-sync.sh
 
 # Install dependencies and pre-commit hooks
 install:
@@ -75,6 +94,7 @@ install:
 # Initialize project with specific profile
 init:
 	@chmod +x scripts/*.sh 2>/dev/null || true
+	@chmod +x .githooks/* 2>/dev/null || true
 	@if [ -n "$(filter-out init,$(MAKECMDGOALS))" ]; then \
 		profile=$(filter-out init,$(MAKECMDGOALS)); \
 		echo "Initializing project with $$profile profile..."; \
@@ -83,6 +103,13 @@ init:
 		echo "Initializing project with common profile..."; \
 		./scripts/profile-manager.sh init common; \
 	fi
+	@echo "Setting up lat.md knowledge graph..."
+	@command -v lat >/dev/null 2>&1 || { \
+		echo "Installing lat.md..."; \
+		npm install -g --prefix $$HOME/.npm-global lat.md; \
+	}
+	@git config core.hooksPath .githooks
+	@export PATH="$$HOME/.npm-global/bin:$$PATH" LAT_LLM_KEY=$${LAT_LLM_KEY:-unused} && lat check || echo "  WARNING: lat check failed, fix before committing"
 
 # Handle arguments for init command
 %:

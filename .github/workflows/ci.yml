@@ -190,6 +190,31 @@ jobs:
             coverage.xml
             test-results/
 
+  # Knowledge graph validation
+  lat-check:
+    name: lat.md Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install lat.md
+        run: npm install -g lat.md
+
+      - name: Validate knowledge graph
+        run: LAT_LLM_KEY=unused lat check
+
+      - name: Check lat.md sync policy
+        if: github.event_name == 'pull_request'
+        run: bash scripts/check-lat-sync.sh origin/${{ github.base_ref }} HEAD
+
   # All checks combined
   check:
     name: All Checks

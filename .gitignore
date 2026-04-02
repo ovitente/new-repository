@@ -402,6 +402,13 @@ logs/
 *.tmp
 *.temp
 
+# lat.md cache
+lat.md/.cache/
+
+# Nix
+.direnv/
+result
+
 # Pre-commit
 .pre-commit-config.yaml.bak
 
