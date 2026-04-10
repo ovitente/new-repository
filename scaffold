@@ -1,0 +1,205 @@
+#!/usr/bin/env bash
+# scaffold — generate or upgrade a project repository.
+#
+# Usage:
+#   ./scaffold <path> <profile>
+#   ./scaffold --list
+#
+# Profiles:
+#   code-go, code-js, code-python, code-bash
+#   infra-terraform, infra-pulumi
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+
+# shellcheck source=lib/common.sh
+source "${SCRIPT_DIR}/lib/common.sh"
+# shellcheck source=lib/profiles.sh
+source "${SCRIPT_DIR}/lib/profiles.sh"
+# shellcheck source=lib/prompt.sh
+source "${SCRIPT_DIR}/lib/prompt.sh"
+# shellcheck source=lib/render.sh
+source "${SCRIPT_DIR}/lib/render.sh"
+
+usage() {
+  cat >&2 <<EOF
+Usage: $0 <path> <profile>
+       $0 --list
+
+Generate or upgrade a project repository with lat.md integration,
+pre-commit hooks, CI pipeline, and profile-specific tooling.
+
+EOF
+  print_profiles >&2
+  exit 2
+}
+
+# --- Argument parsing ---
+
+if [[ $# -eq 0 ]]; then
+  usage
+fi
+
+if [[ "$1" = "--list" || "$1" = "-l" ]]; then
+  print_profiles
+  exit 0
+fi
+
+if [[ $# -lt 2 ]]; then
+  usage
+fi
+
+TARGET_PATH="$1"
+PROFILE="$2"
+
+validate_profile "$PROFILE"
+split_profile "$PROFILE"
+
+PROJECT_NAME="$(basename "$TARGET_PATH")"
+# YEAR="$(date +%Y)"  # available for LICENSE.tpl if needed
+
+# Resolve to absolute path
+if [[ "$TARGET_PATH" != /* ]]; then
+  TARGET_PATH="$(pwd)/${TARGET_PATH}"
+fi
+
+SHARED_DIR="${SCRIPT_DIR}/templates/shared"
+PROFILE_DIR="${SCRIPT_DIR}/templates/${CATEGORY}/${LANG}"
+
+# --- Conflict check ---
+
+if [[ -d "$TARGET_PATH" ]] && [[ -n "$(ls -A "$TARGET_PATH" 2>/dev/null)" ]]; then
+  # Build manifest of files we will write
+  MANIFEST_FILE="$(mktemp)"
+  trap 'rm -f "$MANIFEST_FILE"' EXIT
+  build_manifest "$SCRIPT_DIR" "$CATEGORY" "$LANG" > "$MANIFEST_FILE"
+  check_conflicts "$TARGET_PATH" "$MANIFEST_FILE"
+fi
+
+# --- Generate ---
+
+log "Scaffolding ${BOLD}${PROFILE}${RESET} project at ${BOLD}${TARGET_PATH}${RESET}"
+
+mkdir -p "$TARGET_PATH"
+
+# Load profile-specific patterns
+# shellcheck source=/dev/null
+source "${PROFILE_DIR}/lat-sync-patterns.sh"
+
+# Profile-specific .gitignore section
+PROFILE_GITIGNORE=""
+if [[ -f "${PROFILE_DIR}/gitignore-extra" ]]; then
+  PROFILE_GITIGNORE="$(cat "${PROFILE_DIR}/gitignore-extra")"
+fi
+
+# Profile-specific CI jobs
+CI_PROFILE_JOBS=""
+if [[ -f "${PROFILE_DIR}/ci-steps.yml" ]]; then
+  CI_PROFILE_JOBS="$(cat "${PROFILE_DIR}/ci-steps.yml")"
+fi
+
+# Tier descriptions for lat.md/tests.md
+TIER1_DESC="${TIER1_PATTERNS//|/, }"
+TIER1_DESC="${TIER1_DESC//(/}"
+TIER1_DESC="${TIER1_DESC//)/}"
+TIER2_DESC="${TIER2_PATTERNS//|/, }"
+TIER2_DESC="${TIER2_DESC//(/}"
+TIER2_DESC="${TIER2_DESC//)/}"
+
+# --- Shared files ---
+
+info "Copying shared files..."
+
+# Static copies (no templating)
+copy_file "${SHARED_DIR}/.editorconfig" "${TARGET_PATH}/.editorconfig"
+copy_file "${SHARED_DIR}/SECURITY.md" "${TARGET_PATH}/SECURITY.md"
+copy_file "${SHARED_DIR}/githooks/pre-commit" "${TARGET_PATH}/.githooks/pre-commit"
+chmod +x "${TARGET_PATH}/.githooks/pre-commit"
+
+# Templated shared files
+render_template "${SHARED_DIR}/.gitignore.tpl" "${TARGET_PATH}/.gitignore" \
+  "PROFILE_GITIGNORE=${PROFILE_GITIGNORE}"
+
+render_template "${SHARED_DIR}/AGENTS.md.tpl" "${TARGET_PATH}/AGENTS.md"
+
+render_template "${SHARED_DIR}/scripts/check-lat-sync.sh.tpl" "${TARGET_PATH}/scripts/check-lat-sync.sh" \
+  "TIER1_PATTERNS=${TIER1_PATTERNS}" \
+  "TIER2_PATTERNS=${TIER2_PATTERNS}"
+chmod +x "${TARGET_PATH}/scripts/check-lat-sync.sh"
+
+render_template "${SHARED_DIR}/github/workflows/ci.yml.tpl" "${TARGET_PATH}/.github/workflows/ci.yml" \
+  "CI_PROFILE_JOBS=${CI_PROFILE_JOBS}"
+
+# --- lat.md skeleton ---
+
+info "Generating lat.md knowledge graph..."
+
+render_template "${SHARED_DIR}/lat.md/lat.md.tpl" "${TARGET_PATH}/lat.md/lat.md"
+render_template "${SHARED_DIR}/lat.md/status.md.tpl" "${TARGET_PATH}/lat.md/status.md"
+
+render_template "${SHARED_DIR}/lat.md/delivery.md.tpl" "${TARGET_PATH}/lat.md/delivery.md" \
+  "PROFILE_SECTION=placeholder"
+render_template "${SHARED_DIR}/lat.md/environments.md.tpl" "${TARGET_PATH}/lat.md/environments.md" \
+  "PROFILE_SECTION=placeholder"
+render_template "${SHARED_DIR}/lat.md/architecture.md.tpl" "${TARGET_PATH}/lat.md/architecture.md" \
+  "PROFILE_SECTION=placeholder"
+render_template "${SHARED_DIR}/lat.md/tests.md.tpl" "${TARGET_PATH}/lat.md/tests.md" \
+  "PROFILE_SECTION=placeholder" \
+  "TIER1_DESCRIPTION=${TIER1_DESC}" \
+  "TIER2_DESCRIPTION=${TIER2_DESC}"
+
+# Inject profile-specific lat.md snippets
+for snippet in "${PROFILE_DIR}/lat-snippets/"*.snippet; do
+  [[ -f "$snippet" ]] || continue
+  base="$(basename "$snippet" .snippet)"
+  target="${TARGET_PATH}/lat.md/${base}"
+  if [[ -f "$target" ]]; then
+    inject_at_marker "$target" "PROFILE_SECTION" "$snippet"
+  fi
+done
+
+# Clean any remaining unreplaced markers in lat.md files
+for f in "${TARGET_PATH}/lat.md/"*.md; do
+  [[ -f "$f" ]] || continue
+  sed -i '/{{[A-Z_]*}}/d' "$f"
+done
+
+# --- Profile-specific files ---
+
+info "Generating ${PROFILE} files..."
+
+# Makefile
+if [[ -f "${PROFILE_DIR}/Makefile.tpl" ]]; then
+  render_template "${PROFILE_DIR}/Makefile.tpl" "${TARGET_PATH}/Makefile" \
+    "PROJECT_NAME=${PROJECT_NAME}"
+fi
+
+# Pre-commit config: merge common + profile
+{
+  cat "${SHARED_DIR}/pre-commit-config-common.yaml"
+  echo ""
+  # Append profile repos (strip the top-level "repos:" line to avoid duplication)
+  if [[ -f "${PROFILE_DIR}/pre-commit-config.yaml" ]]; then
+    sed '1,/^repos:/d' "${PROFILE_DIR}/pre-commit-config.yaml"
+  fi
+} > "${TARGET_PATH}/.pre-commit-config.yaml"
+
+# --- Git init ---
+
+if [[ ! -d "${TARGET_PATH}/.git" ]]; then
+  info "Initializing git repository..."
+  git -C "$TARGET_PATH" init -q
+fi
+
+git -C "$TARGET_PATH" config core.hooksPath .githooks
+
+# --- Summary ---
+
+log "Done! Project scaffolded at ${TARGET_PATH}"
+echo ""
+echo "Next steps:"
+echo "  cd ${TARGET_PATH}"
+echo "  make lat-install    # install lat.md CLI"
+echo "  make lat-check      # verify knowledge graph"
+echo "  # fill in lat.md/ files with your project details"
+echo ""

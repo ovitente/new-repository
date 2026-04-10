@@ -1,0 +1,14 @@
+  quality:
+    name: Quality
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install shellcheck
+        run: sudo apt-get install -y shellcheck
+
+      - name: Lint
+        run: find . -name '*.sh' -not -path './.git/*' -exec shellcheck {} +
+
+      - name: Syntax check
+        run: find . -name '*.sh' -not -path './.git/*' -exec bash -n {} +

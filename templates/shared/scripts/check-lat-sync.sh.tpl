@@ -7,7 +7,6 @@
 #   Tier 2: product source code changes require lat.md/status.md update.
 #
 # Used by .githooks/pre-commit (--staged) and CI / manual runs (--range).
-# Adapt trigger patterns to your project structure.
 set -euo pipefail
 
 MODE="range"
@@ -34,7 +33,6 @@ if [ $# -gt 0 ]; then
       usage
       ;;
     *)
-      # Backwards compat: positional BASE [HEAD]
       BASE_REF="$1"
       HEAD_REF="${2:-HEAD}"
       ;;
@@ -58,14 +56,12 @@ HAS_LAT=0
 HAS_STATUS=0
 
 # Tier 1: infra / config / delivery surfaces — require any lat.md/ update.
-# Adapt these patterns to your project structure.
-if printf '%s\n' "$CHANGED" | grep -qE '(^\.github/workflows/|^infra/|^scripts/|^deploy/|^k8s/|^terraform/|Makefile|Dockerfile|docker-compose\.ya?ml|\.tf$|\.tfvars$|flake\.nix|shell\.nix)'; then
+if printf '%s\n' "$CHANGED" | grep -qE '{{TIER1_PATTERNS}}'; then
   NEEDS_LAT=1
 fi
 
 # Tier 2: product source code surfaces — require lat.md/status.md update.
-# Adapt these patterns to your project structure.
-if printf '%s\n' "$CHANGED" | grep -qE '(^src/|^lib/|^app/|^cmd/|^pkg/|^internal/|^frontend/src/)'; then
+if printf '%s\n' "$CHANGED" | grep -qE '{{TIER2_PATTERNS}}'; then
   NEEDS_STATUS=1
 fi
 

@@ -1,0 +1,26 @@
+# Go-specific pre-commit hooks (merged with common hooks).
+repos:
+  - repo: https://github.com/dnephin/pre-commit-golang
+    rev: v0.5.1
+    hooks:
+      - id: go-fmt
+      - id: go-vet
+      - id: go-imports
+      - id: golangci-lint
+      - id: go-mod-tidy
+
+  - repo: local
+    hooks:
+      - id: go-test
+        name: Go Tests
+        entry: go test ./...
+        language: system
+        files: \.go$
+        pass_filenames: false
+
+      - id: go-build
+        name: Go Build Check
+        entry: go build ./...
+        language: system
+        files: \.go$
+        pass_filenames: false

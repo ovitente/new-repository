@@ -1,0 +1,15 @@
+# Bash pre-commit hooks (merged with common hooks).
+repos:
+  - repo: https://github.com/koalaman/shellcheck-precommit
+    rev: v0.9.0
+    hooks:
+      - id: shellcheck
+        args: [--severity=warning]
+
+  - repo: local
+    hooks:
+      - id: shfmt
+        name: Shell Format Check
+        entry: shfmt -i 2 -ci -d
+        language: system
+        files: \.(sh|bash)$

@@ -1,19 +1,32 @@
 # Tests
 
-Test strategy and critical system invariants for this project.
+See also [[architecture]], [[delivery]], [[environments]], [[status]].
+
+Verification strategy for the scaffold generator.
 
 ## Required checks
 
-All automated checks that must pass before code can be committed or merged.
+Automated checks that must pass before changes are committed.
+
+- `shellcheck scaffold lib/*.sh` — all generator scripts must pass.
+- `lat check` — generator's own knowledge graph must be valid.
+- Scaffold dry run: `./scaffold /tmp/test-project code-go` must produce a valid project.
 
 ## Smoke expectations
 
-Health and sanity checks that must pass after every deployment.
+Health checks after scaffolding a project.
 
-## Critical invariants
-
-Properties that must always hold true. Add `@lat:` refs in test files that verify these.
+- `lat check` passes in the generated project.
+- `make lat-check` works in the generated project.
+- `.githooks/pre-commit` is executable.
+- `scripts/check-lat-sync.sh` is executable.
+- `.pre-commit-config.yaml` exists and contains common + profile hooks.
+- `Makefile` contains `lat-install`, `lat-check`, `lat-policy` targets.
 
 ## Failure signals
 
-Conditions that must block a commit, PR, or deploy. See [[delivery#Failure handling]].
+Conditions that indicate a broken generator.
+
+- shellcheck errors in scaffold or lib/*.sh.
+- `lat check` failure in generator or generated project.
+- Missing files in generated output (Makefile, .githooks, lat.md/, etc.).

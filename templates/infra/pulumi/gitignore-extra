@@ -1,0 +1,4 @@
+# Pulumi
+Pulumi.*.yaml
+node_modules/
+venv/

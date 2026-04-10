@@ -1,37 +1,46 @@
-# Project agent workflow
+# Generator agent workflow
 
-This repository uses `lat.md/` as the project knowledge graph.
+This repository is a scaffold generator tool. It uses `lat.md/` as its own knowledge graph.
 
-## Mandatory workflow
+## Read order for a new session
 
-Before making substantial changes:
-- Read the relevant `lat.md/` files first.
-- Use `lat locate`, `lat section`, `lat refs`, or `lat search` when helpful.
-- Do not change architecture, delivery flow, environments, or test expectations without first reading the matching lat docs.
+1. `./lat.md/status.md` — current focus, in-progress work, blockers.
+2. `./lat.md/architecture.md` — generator components, template structure.
+3. `./lat.md/delivery.md` — scaffold command, profiles, make targets.
+4. `./lat.md/environments.md` — runtime requirements, paths.
+5. `./lat.md/tests.md` — verification, shellcheck, smoke tests.
+6. This file (`AGENTS.md`) — working protocol.
+
+## Key distinction
+
+This repo has two levels of lat.md:
+- **Generator level:** `lat.md/` in this repo — describes the generator itself.
+- **Template level:** `templates/shared/lat.md/` — skeleton files copied to generated projects.
+
+When modifying generator logic, update the generator's lat.md files.
+When modifying what gets generated, update the template lat.md files.
 
 ## Routing rules
 
-- Architecture / component interaction / boundaries / important flows:
+- Generator architecture / rendering flow / template structure:
   - update `lat.md/architecture.md`
 
-- CI/CD / build / deploy / release / rollback / migrations:
+- Scaffold command / profiles / make targets:
   - update `lat.md/delivery.md`
 
-- Environments / config / runtime behavior / secrets ownership / deployment targets:
+- Runtime requirements / paths / dependencies:
   - update `lat.md/environments.md`
 
-- Required checks / smoke tests / policy checks / integration or e2e expectations:
+- Verification / shellcheck / smoke tests:
   - update `lat.md/tests.md`
+
+- Current focus / progress / blockers:
+  - update `lat.md/status.md`
 
 ## Completion criteria
 
-A task is not complete until all of the following are true:
-- Relevant `lat.md/` files were updated for any substantial behavior/config/workflow change.
-- Relevant `@lat:` backlinks were added or updated where appropriate.
+A task is not complete until:
+- Generator's lat.md files updated for behavioral changes.
+- `shellcheck scaffold lib/*.sh` passes.
 - `lat check` passes.
-- Repository policy checks for lat sync pass.
-
-## Review policy
-
-When a change affects behavior but `lat.md/` was not updated, explain why explicitly.
-Review semantic changes in `lat.md/` first, then review the code/config diff.
+- Scaffold dry run produces valid output.

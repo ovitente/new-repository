@@ -1,0 +1,25 @@
+  quality:
+    name: Quality & Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install
+        run: npm ci
+
+      - name: Lint
+        run: npx eslint "**/*.{js,jsx,ts,tsx}"
+
+      - name: Type check
+        run: npx tsc --noEmit || echo "TypeScript check skipped"
+
+      - name: Test
+        run: npm test
+
+      - name: Audit
+        run: npm audit --audit-level=moderate || true
